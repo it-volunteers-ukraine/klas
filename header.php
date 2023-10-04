@@ -19,7 +19,7 @@
                     </div>
                 </div>
                 <div class="menu__nav">  
-                    <?php 
+                    <?php
                         if ( has_custom_logo() ) {
                             echo get_custom_logo();
                         }
