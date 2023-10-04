@@ -1,6 +1,7 @@
 <?php
 
 require_once 'util/AcfFieldManager.php';
+require_once 'post-type/post-type-registration.php';
 
 if ( ! function_exists('wp_it_volunteers_setup')) {
   function wp_it_volunteers_setup() {
