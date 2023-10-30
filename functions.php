@@ -43,7 +43,8 @@ function wp_it_volunteers_scripts() {
 }
 /** add fonts */
 function add_google_fonts() {
-  wp_enqueue_style( 'google_web_fonts', 'https://fonts.googleapis.com/css?family=Open+Sans|Roboto' );
+  wp_enqueue_style( 'google_web_fonts', 'https://fonts.googleapis.com/css2?family=Raleway:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap' );
+  wp_enqueue_style( 'google_web_fonts', 'https://fonts.googleapis.com/css2?family=Inter:wght@100;300;400;500;600;700;800;900&display=swap');
 }
  
 add_action( 'wp_enqueue_scripts', 'add_google_fonts' );
@@ -52,6 +53,7 @@ add_action( 'wp_enqueue_scripts', 'add_google_fonts' );
 function wp_it_volunteers_menus() {
   $locations = array(
     'header' => __( 'Header Menu', 'wp-it-volunteers' ),
+    'mob-header' => __( 'Burger Menu', 'wp-it-volunteers' ),
     'footer' => __( 'Footer Menu', 'wp-it-volunteers' ),
   );
 
@@ -60,5 +62,77 @@ function wp_it_volunteers_menus() {
 
 add_action( 'init', 'wp_it_volunteers_menus');
 
+add_filter( 'upload_mimes', 'svg_upload_allow' );
+
+add_theme_support('post-thumbnails');
+add_theme_support('title-tag');
+add_theme_support('custom-logo');
+# Добавляет SVG в список разрешенных для загрузки файлов.
+function svg_upload_allow( $mimes ) {
+	$mimes['svg']  = 'image/svg+xml';
+	return $mimes;
+}
+add_filter( 'wp_check_filetype_and_ext', 'fix_svg_mime_type', 10, 5 );
+
+# Исправление MIME типа для SVG файлов.
+function fix_svg_mime_type( $data, $file, $filename, $mimes, $real_mime = '' ){
+	// WP 5.1 +
+	if( version_compare( $GLOBALS['wp_version'], '5.1.0', '>=' ) ){
+		$dosvg = in_array( $real_mime, [ 'image/svg', 'image/svg+xml' ] );
+	}
+	else {
+		$dosvg = ( '.svg' === strtolower( substr( $filename, -4 ) ) );
+	}
+	// mime тип был обнулен, поправим его
+	// а также проверим право пользователя
+	if( $dosvg ){
+		// разрешим
+		if( current_user_can('manage_options') ){
+			$data['ext']  = 'svg';
+			$data['type'] = 'image/svg+xml';
+		}
+		// запретим
+		else {
+			$data['ext']  = false;
+			$data['type'] = false;
+		}
+	}
+	return $data;
+}
+
+
+if (function_exists("acf_add_options_page")) {
+  acf_add_options_page(array(
+      "page_title" => "Налаштування сайту",
+      "menu_title" => "Налаштування сайту",
+      "menu_slug"  => "theme_settings",
+  ));
+}
+
+// Класс для li на меню
+function add_custom_class_to_menu_items($items, $args) {
+  if ($args->theme_location === 'header') {
+      foreach ($items as $item) {
+          $item->classes[] = 'header-inner__list-item'; 
+      }
+  }
+  if ($args->theme_location === 'mob-header') {
+    foreach ($items as $item) {
+        $item->classes[] = 'mobile-menu__item'; 
+    }
+  }
+    if ($args->theme_location === 'footer') {
+      foreach ($items as $item) {
+          $item->classes[] = 'footer-info-nav-list-item'; 
+      }
+    }
+  return $items;
+}
+
+add_filter('wp_nav_menu_objects', 'add_custom_class_to_menu_items', 10, 2);
+
+
+
+?>
 
 
